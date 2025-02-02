@@ -10,7 +10,7 @@ app.use(bodyParser.json());
 app.use(cors());
 
 // Connect to MongoDB Atlas
-const MONGO_URI = 'mongodb+srv://gowtham9112006:gowthamsai123@data.pxwjj.mongodb.net/projectManagementDB?retryWrites=true&w=majority';
+const MONGO_URI = '';
 mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(() => console.log('MongoDB connected successfully'))
     .catch(err => console.error('MongoDB connection error:', err.message));
