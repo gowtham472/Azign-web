@@ -2,56 +2,98 @@ import './App.css';
 import Header from './components/Header.jsx';
 import Projects from './components/Projects';
 import Tasks from './components/Tasks.jsx';
-import { useState } from 'react';
-import {BrowserRouter as Router, Route, Routes} from 'react-router-dom';
+import ProjectDetail from './components/ProjectDetail.jsx';
+import TaskDetail from './components/TaskDetail.jsx';
+import { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
+import axios from 'axios';
+import Allprojects from './components/Allprojects.jsx';
+import Alltasks from './components/AllTasks.jsx';
 
-const allProjects = [
-    { name: 'Project 01H1', status: 'Active' },
-    { name: 'Project 01S3', status: 'Inactive' },
-    { name: 'Project 02H1', status: 'Active' },
-    { name: 'Project 02S3', status: 'Inactive' },
-    { name: 'Project 03H1', status: 'Active' },
-    { name: 'Project 03S3', status: 'Inactive' },
-];
-
-const allTasks = [
-    { name: 'PCD01H1-TC01', status: 'Active', deadline: '2023-12-01' },
-    { name: 'PCD01S3-TC04', status: 'Inactive', deadline: '2023-12-15' },
-    { name: 'PCD02H1-TC02', status: 'Active', deadline: '2023-12-30' },
-    { name: 'PCD02S3-TC05', status: 'Inactive', deadline: '2023-12-10' },
-    { name: 'PCD03H1-TC03', status: 'Active', deadline: '2023-12-20' },
-    { name: 'PCD03S3-TC06', status: 'Inactive', deadline: '2023-12-25' },
-    { name: 'PCD04H1-TC04', status: 'Active', deadline: '2023-12-05' },
-    { name: 'PCD04S3-TC07', status: 'Inactive', deadline: '2023-12-10' },
-    { name: 'PCD05H1-TC05', status: 'Active', deadline: '2023-12-15' },
-    { name: 'PCD05S3-TC08', status: 'Inactive', deadline: '2023-12-20' },
-    { name: 'PCD06H1-TC06', status: 'Active', deadline: '2023-12-25' },
-    { name: 'PCD06S3-TC09', status: 'Inactive', deadline: '2023-12-30' },
-    { name: 'PCD07H1-TC07', status: 'Active', deadline: '2023-12-05' },
-    { name: 'PCD07S3-TC10', status: 'Inactive', deadline: '2023-12-10' },
-    { name: 'PCD08H1-TC08', status: 'Active', deadline: '2023-12-15' },
-    { name: 'PCD08S3-TC11', status: 'Inactive', deadline: '2023-12-20' },
-    { name: 'PCD09H1-TC09', status: 'Active', deadline: '2023-12-25' },
-    { name: 'PCD09S3-TC12', status: 'Inactive', deadline: '2023-12-30' },
-];
 
 export default function App() {
-    const [showAll, setShowAll] = useState(false);
+    const [projects, setProjects] = useState([]);
+    const [tasks, setTasks] = useState([]);
+    const [showAllProjects, setShowAllProjects] = useState(false);
+    const [showAllTasks, setShowAllTasks] = useState(false);
+
+    // Fetching data from the API
+    useEffect(() => {
+        axios.get('https://c1q1h48z-8000.inc1.devtunnels.ms/api/projects')
+            .then(response => {
+                setProjects(response.data);
+            }).catch(error => console.error('Error fetching projects:', error));
+
+        axios.get('https://c1q1h48z-8000.inc1.devtunnels.ms/api/tasks')
+            .then(response => {
+                const tasksWithDefaults = response.data.map(task => ({
+                    ...task,
+                    status: task.status || 'Not Assigned'
+                }));
+                setTasks(tasksWithDefaults);
+            })
+            .catch(error => console.error('Error fetching tasks:', error));
+    }, []);
+
+    // Add project to the database via API
+    const addProject = (project) => {
+        axios.post('https://c1q1h48z-8000.inc1.devtunnels.ms/api/projects/create', project)
+            .then(response => setProjects([...projects, response.data]))
+            .catch(error => console.error('Error adding project:', error));
+    };
+
+    // Update task via API
+    const updateTask = (taskId, updatedTask) => {
+        axios.put(`https://c1q1h48z-8000.inc1.devtunnels.ms/api/tasks/${taskId}/update`, updatedTask)
+            .then(response => {
+                setTasks(tasks.map(task => task.taskId === taskId ? response.data : task));
+            })
+            .catch(error => console.error('Error updating task:', error));
+    };
+
+    // Delete project via API
+    const deleteProject = (projectId) => {
+        axios.delete(`https://c1q1h48z-8000.inc1.devtunnels.ms/api/projects/${projectId}`)
+            .then(() => {
+                setProjects(projects.filter(project => project._id !== projectId));
+            })
+            .catch(error => console.error('Error deleting project:', error));
+    };
 
     return (
         <Router>
             <Header />
             <div className="main-container">
-                <Projects projects={showAll ? allProjects : allProjects.slice(0, 3)} />
-                <Tasks tasks={showAll ? allTasks : allTasks.slice(0, 3)} />
+                <Routes>
+                    <Route path="/" element={
+                        <>
+                            <Tasks
+                                tasks={showAllTasks ? tasks : tasks.slice(0, 3)}
+                                toggleShowAll={() => setShowAllTasks(!showAllTasks)}
+                                showAll={showAllTasks}
+                                updateTask={updateTask}
+                            />
+                            <Projects
+                                projects={showAllProjects ? projects : projects.slice(0, 3)}
+                                toggleShowAll={() => setShowAllProjects(!showAllProjects)}
+                                showAll={showAllProjects}
+                                addProject={addProject}
+                                deleteProject={deleteProject}
+                            />
+                        </>
+                    } />
+                    <Route path="/projects/:projectCode" element={<ProjectDetail projects={projects} />} />
+                    <Route path="/tasks/:taskId" element={<TaskDetail tasks={tasks} />} />
+                    <Route path="/all-projects" element={<Allprojects projects={projects} />} />
+                    <Route path="/all-tasks" element={<Alltasks tasks={tasks} />} />
+                    <Route path="*" element={<h1>404 - Not Found</h1>} />
+                </Routes>
             </div>
-
-            {/* Bottom Navigation */}
             <div className="navbar">
-                <i className="fas fa-home"></i>
-                <i className="fas fa-tasks"></i>
-                <i className="fas fa-comments"></i>
-                <i className="fas fa-cube"></i>
+                <Link to="/"><i className="fas fa-home"></i></Link>
+                <Link to="/all-tasks"><i className="fas fa-tasks"></i></Link>
+                <Link to="/all-projects"><i className="fas fa-cube"></i></Link>
+                <Link to="/"><i className="fas fa-comments"></i></Link>
             </div>
         </Router>
     );

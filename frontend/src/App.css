@@ -1,5 +1,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
+* {
+  box-sizing: border-box;
+  a{
+    text-decoration: none;
+    color: #0e172c;
+  }
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -48,6 +56,7 @@ body {
   flex-wrap: wrap;
   justify-content: space-between;
   padding: 20px;
+  margin-bottom: 50px;
 }
 
 /* Responsive Layout */
@@ -85,8 +94,12 @@ h1 {
 }
 
 .container li {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+  grid-template-areas: 
+    "col1 col2"
+    "col3 col3";
   align-items: center;
   background: #f9f9f9;
   padding: 15px;
@@ -96,6 +109,18 @@ h1 {
   font-size: 1rem;
   font-weight: 500;
   color: #333;
+}
+
+.container li > *:nth-child(1) {
+  grid-area: col1;
+}
+
+.container li > *:nth-child(2) {
+  grid-area: col2;
+}
+
+.container li > *:nth-child(3) {
+  grid-area: col3;
 }
 
 .container li h2 {
@@ -163,4 +188,39 @@ h1 {
 .deadline {
   font-size: 0.8rem;
   color: #888;
+}
+
+.status-active {
+  background: #e8ffe8;
+  color: #4caf50;
+}
+
+.status-inactive {
+  background: #ffe8e8;
+  color: #e53935;
+}
+
+.status-in-progress {
+  background: #e8f4ff;
+  color: #2196f3;
+}
+
+.status-completed {
+  background: #e8ffe8;
+  color: #4caf50;
+}
+
+.status-to-do {
+  background: #fff8e1;
+  color: #ff9800;
+}
+
+.status-pending {
+  background: #fff3e0;
+  color: #ff5722;
+}
+
+.container div li:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
